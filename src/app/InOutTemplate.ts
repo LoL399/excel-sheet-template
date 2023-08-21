@@ -1,9 +1,10 @@
-import * as XLSX from 'xlsx';
+import * as XLSX from 'xlsx-js-style';
 import { autofitColumns } from './OTTemplate';
+import * as moment from 'moment';
 const dummy = {
   no: 1,
   name: 'name',
-  date: new Date(),
+  date: moment().format(),
   in: '07:00',
   out: '08:00',
 };
@@ -11,25 +12,33 @@ const dummy = {
 const dummyArray = new Array(100).fill(dummy);
 export const toInOutTemplate = () => {
   //
-  const emptyRows = Array(3).fill({});
-  const rows = dummyArray;
-  const header = ['Ma nv', 'Ten NV', 'Ngay', 'Vao', 'Ra', 'Note'];
-  const worksheet = XLSX.utils.json_to_sheet([...emptyRows, ...rows], {
-    skipHeader: true,
-  });
+  let rows = [];
+  rows = [
+    [{ v: "CHI TIET ...", t: "s", s: { alignment: { vertical: 'center', horizontal: 'center' }, font: {bold: true} } }],
+    [{ v: "Tu ngay A den ngay B", t: "s", s: { alignment: { vertical: 'center', horizontal: 'center' }, font: {bold: true} } }],
+    [
+      { v: "Ma nv", t: "s", s: { alignment: { vertical: 'center', horizontal: 'center' }, font: {bold: true} } },
+      { v: "Ten NV", t: "s", s: { alignment: { vertical: 'center', horizontal: 'center' }, font: {bold: true} } },
+      { v: "Ngay", t: "s", s: { alignment: { vertical: 'center', horizontal: 'center' }, font: {bold: true} } },
+      { v: "Vao", t: "s", s: { alignment: { vertical: 'center', horizontal: 'center' }, font: {bold: true} } },
+      { v: "Ra", t: "s", s: { alignment: { vertical: 'center', horizontal: 'center' }, font: {bold: true} } },
+      { v: "Note", t: "s", s: { alignment: { vertical: 'center', horizontal: 'center' }, font: {bold: true} } },
+    ],
+    ...dummyArray.map((row)=>{
+      let key = Object.keys(row);
+      return [key.map(k=> {return { v: row[k], t: "s", s: { alignment: { vertical: 'center', horizontal: 'center' }, font: {bold: true} } }})]
+    }).flat()
+  ]
+  const ws = XLSX.utils.aoa_to_sheet(rows);
   const merge = [
     { s: { r: 0, c: 0 }, e: { r: 0, c: 6 } },
     { s: { r: 1, c: 0 }, e: { r: 1, c: 6} },
   ];
-  XLSX.utils.sheet_add_aoa(worksheet, [['CHI TIET ...']], { origin: 'A1' });
-  XLSX.utils.sheet_add_aoa(worksheet, [['Tu ngay A den ngay B']], { origin: 'A2' });
-  XLSX.utils.sheet_add_aoa(worksheet, [header], { origin: 'A3' });
-  worksheet['!merges'] = merge;
+  ws['!merges'] = merge;
 
   //
-  autofitColumns(rows, worksheet, header);
+  // autofitColumns(rows, worksheet, header);
   const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, worksheet, 'Dates');
+  XLSX.utils.book_append_sheet(workbook, ws, 'Dates');
   XLSX.writeFile(workbook, 'Presidents.xlsx');
 };
-
